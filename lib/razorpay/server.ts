@@ -48,3 +48,20 @@ export function verifyWebhookSignature(rawBody: string, signature: string) {
   const expected = createHmac("sha256", webhookSecret).update(rawBody).digest("hex");
   return hasMatchingSignature(expected, signature);
 }
+
+/** Short-lived, signed proof that this browser completed verification for an order. */
+export function createOrderSuccessToken(orderId: string) {
+  const expiresAt = Math.floor(Date.now() / 1000) + 60 * 30;
+  const payload = `${orderId}.${expiresAt}`;
+  const { keySecret } = getRazorpayCheckoutConfig();
+  const signature = createHmac("sha256", keySecret).update(payload).digest("hex");
+  return `${payload}.${signature}`;
+}
+
+export function verifyOrderSuccessToken(token: string | undefined, orderId: string) {
+  if (!token) return false;
+  const [tokenOrderId, expiresAt, signature] = token.split(".");
+  if (tokenOrderId !== orderId || !expiresAt || !signature || Number(expiresAt) < Math.floor(Date.now() / 1000)) return false;
+  const { keySecret } = getRazorpayCheckoutConfig();
+  return hasMatchingSignature(createHmac("sha256", keySecret).update(`${tokenOrderId}.${expiresAt}`).digest("hex"), signature);
+}

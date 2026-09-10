@@ -17,7 +17,8 @@ export type { CheckoutRequest } from "@/lib/checkout/validation";
 export type PaymentVerification = z.infer<typeof paymentVerificationSchema>;
 
 type ProductForCheckout = { id: string; title: string; sku: string | null; price_paise: number; inventory_quantity: number; track_inventory: boolean };
-type PaymentRecord = { id: string; order_id: string; razorpay_order_id: string | null; status: string };
+type PaymentRecord = { id: string; order_id: string; razorpay_order_id: string | null; razorpay_payment_id: string | null; amount_paise: number; status: string };
+type RazorpayPaymentDetails = { id: string; order_id: string; amount: number | string; currency: string; status: string };
 
 export class PaymentServiceError extends Error {
   constructor(message: string, public readonly statusCode = 400) {
@@ -114,13 +115,24 @@ export async function createRazorpayCheckoutOrder(input: CheckoutRequest) {
 
 async function findPayment(razorpayOrderId: string) {
   const admin = createAdminSupabaseClient();
-  const { data, error } = await admin.from("payments").select("id, order_id, razorpay_order_id, status").eq("razorpay_order_id", razorpayOrderId).maybeSingle();
+  const { data, error } = await admin.from("payments").select("id, order_id, razorpay_order_id, razorpay_payment_id, amount_paise, status").eq("razorpay_order_id", razorpayOrderId).maybeSingle();
   if (error || !data) throw new PaymentServiceError("Payment order was not found.", 404);
   return data as unknown as PaymentRecord;
 }
 
+function validatePaymentDetails(payment: PaymentRecord, details: RazorpayPaymentDetails) {
+  if (details.id.length === 0 || details.order_id !== payment.razorpay_order_id || Number(details.amount) !== payment.amount_paise || details.currency !== "INR") throw new PaymentServiceError("Payment details do not match this order.", 400);
+  if (details.status !== "captured") throw new PaymentServiceError("Payment has not been captured yet.", 409);
+}
+
 async function markOrderPaid(payment: PaymentRecord, paymentId: string, signature?: string, metadata?: unknown) {
+  if (payment.razorpay_payment_id && payment.razorpay_payment_id !== paymentId) throw new PaymentServiceError("Payment does not match this order.", 409);
+  if (payment.status === "captured") return { alreadyPaid: true, orderId: payment.order_id };
+  if (payment.status === "refunded" || payment.status === "cancelled") throw new PaymentServiceError("This payment can no longer be completed.", 409);
   const admin = createAdminSupabaseClient();
+  const { data: orderState, error: orderStateError } = await admin.from("orders").select("status, payment_status").eq("id", payment.order_id).maybeSingle();
+  if (orderStateError || !orderState) throw new PaymentServiceError("Order was not found.", 404);
+  if (!(["created", "payment_pending"] as string[]).includes(orderState.status)) throw new PaymentServiceError("This order can no longer be paid.", 409);
   const { data: changedPayment, error: paymentError } = await admin
     .from("payments")
     .update({ status: "captured", razorpay_payment_id: paymentId, razorpay_signature: signature ?? null, signature_verified: true, provider_metadata: metadata ?? null })
@@ -137,13 +149,16 @@ async function markOrderPaid(payment: PaymentRecord, paymentId: string, signatur
     .in("status", ["created", "payment_pending"])
     .neq("payment_status", "captured");
   if (orderError) throw new PaymentServiceError("Unable to finalize order.", 500);
-  return { alreadyPaid: !changedPayment };
+  if (!changedPayment) throw new PaymentServiceError("This payment can no longer be completed.", 409);
+  return { alreadyPaid: false, orderId: payment.order_id };
 }
 
 export async function verifyRazorpayCheckoutPayment(input: PaymentVerification) {
   const payment = await findPayment(input.razorpayOrderId);
   if (!payment.razorpay_order_id || !verifyCheckoutSignature(payment.razorpay_order_id, input.razorpayPaymentId, input.razorpaySignature)) throw new PaymentServiceError("Payment signature verification failed.");
-  return markOrderPaid(payment, input.razorpayPaymentId, input.razorpaySignature);
+  const razorpayPayment = await getRazorpayClient().payments.fetch(input.razorpayPaymentId);
+  validatePaymentDetails(payment, razorpayPayment);
+  return markOrderPaid(payment, input.razorpayPaymentId, input.razorpaySignature, { razorpayPayment });
 }
 
 async function markPaymentFailed(razorpayOrderId: string, paymentId: string | null, metadata: unknown) {
@@ -159,7 +174,7 @@ async function markPaymentFailed(razorpayOrderId: string, paymentId: string | nu
 
 const webhookPayloadSchema = z.object({
   event: z.string(),
-  payload: z.object({ payment: z.object({ entity: z.object({ id: z.string(), order_id: z.string() }).passthrough() }).optional() }).passthrough(),
+  payload: z.object({ payment: z.object({ entity: z.object({ id: z.string(), order_id: z.string(), amount: z.number().int().positive(), currency: z.literal("INR"), status: z.string() }).passthrough() }).optional() }).passthrough(),
 }).passthrough();
 
 export async function processRazorpayWebhook(rawBody: string, signature: string | null, eventId: string | null) {
@@ -181,6 +196,7 @@ export async function processRazorpayWebhook(rawBody: string, signature: string 
     const paymentEntity = webhook.payload.payment?.entity;
     if (paymentEntity && (webhook.event === "payment.captured" || webhook.event === "order.paid")) {
       const payment = await findPayment(paymentEntity.order_id);
+      validatePaymentDetails(payment, paymentEntity);
       await markOrderPaid(payment, paymentEntity.id, undefined, parsedBody);
     } else if (paymentEntity && webhook.event === "payment.failed") {
       await markPaymentFailed(paymentEntity.order_id, paymentEntity.id, parsedBody);
