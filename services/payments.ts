@@ -3,27 +3,9 @@ import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 
+import { checkoutRequestSchema, type CheckoutRequest } from "@/lib/checkout/validation";
 import { getRazorpayClient, getRazorpayKeyId, verifyCheckoutSignature, verifyWebhookSignature } from "@/lib/razorpay/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-
-const checkoutSchema = z.object({
-  customer: z.object({
-    name: z.string().trim().min(1).max(120),
-    email: z.email().trim().toLowerCase(),
-    phone: z.string().trim().min(7).max(24),
-  }),
-  shippingAddress: z.object({
-    recipientName: z.string().trim().min(1).max(120),
-    phone: z.string().trim().min(7).max(24),
-    addressLine1: z.string().trim().min(1).max(240),
-    addressLine2: z.string().trim().max(240).optional(),
-    city: z.string().trim().min(1).max(100),
-    state: z.string().trim().min(1).max(100),
-    postalCode: z.string().trim().min(3).max(20),
-    country: z.string().trim().min(1).max(100).default("India"),
-  }),
-  items: z.array(z.object({ productId: z.uuid(), quantity: z.number().int().min(1).max(99) })).min(1).max(50),
-});
 
 const paymentVerificationSchema = z.object({
   razorpayOrderId: z.string().min(1).max(128),
@@ -31,7 +13,7 @@ const paymentVerificationSchema = z.object({
   razorpaySignature: z.string().regex(/^[a-f0-9]{64}$/i),
 });
 
-export type CheckoutRequest = z.infer<typeof checkoutSchema>;
+export type { CheckoutRequest } from "@/lib/checkout/validation";
 export type PaymentVerification = z.infer<typeof paymentVerificationSchema>;
 
 type ProductForCheckout = { id: string; title: string; sku: string | null; price_paise: number; inventory_quantity: number; track_inventory: boolean };
@@ -45,7 +27,7 @@ export class PaymentServiceError extends Error {
 }
 
 export function parseCheckoutRequest(input: unknown): CheckoutRequest {
-  const parsed = checkoutSchema.safeParse(input);
+  const parsed = checkoutRequestSchema.safeParse(input);
   if (!parsed.success) throw new PaymentServiceError("Invalid checkout information.");
   return parsed.data;
 }
@@ -112,7 +94,10 @@ export async function createRazorpayCheckoutOrder(input: CheckoutRequest) {
     return { order_id: order.id, product_id: product.id, product_title: product.title, sku: product.sku, unit_price_paise: product.price_paise, quantity, total_paise: product.price_paise * quantity };
   });
   const { error: itemsError } = await admin.from("order_items").insert(orderItems);
-  if (itemsError) throw new PaymentServiceError("Unable to create the order.", 500);
+  if (itemsError) {
+    await admin.from("orders").update({ status: "cancelled", payment_status: "failed" }).eq("id", order.id);
+    throw new PaymentServiceError("Unable to create the order.", 500);
+  }
 
   try {
     const razorpayOrder = await getRazorpayClient().orders.create({ amount: subtotalPaise, currency: "INR", receipt: orderNumber, notes: { internal_order_id: order.id, order_number: orderNumber } });
@@ -120,7 +105,7 @@ export async function createRazorpayCheckoutOrder(input: CheckoutRequest) {
     if (paymentError) throw paymentError;
     const { error: linkError } = await admin.from("orders").update({ razorpay_order_id: razorpayOrder.id, status: "payment_pending", payment_status: "created" }).eq("id", order.id);
     if (linkError) throw linkError;
-    return { internalOrderId: order.id, razorpayOrderId: razorpayOrder.id, keyId: getRazorpayKeyId(), amountPaise: subtotalPaise, currency: "INR" as const, customer };
+    return { internalOrderId: order.id, razorpayOrderId: razorpayOrder.id, keyId: getRazorpayKeyId(), amountPaise: subtotalPaise, currency: "INR" as const };
   } catch {
     await admin.from("orders").update({ status: "cancelled", payment_status: "failed" }).eq("id", order.id).neq("payment_status", "captured");
     throw new PaymentServiceError("Unable to start payment. Please try again.", 502);
