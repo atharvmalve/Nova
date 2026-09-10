@@ -69,18 +69,7 @@ const { data: profile, error: profileError } = await supabase
   .eq("id", authData.user.id)
   .maybeSingle();
 
-console.log("[DEBUG] Auth User ID:", authData.user?.id);
-console.log("[DEBUG] Returned Profile:", profile);
-console.log("[DEBUG] Supabase Query Error:", profileError);
-
 if (profileError || !profile || !["admin", "owner"].includes(profile.role?.trim())) {
-  console.log("[DEBUG] Access Denied Details:", {
-    hasError: !!profileError,
-    profileFound: !!profile,
-    rawRole: profile?.role,
-    roleMatched: profile ? ["admin", "owner"].includes(profile.role?.trim()) : false,
-  });
-
   await supabase.auth.signOut();
   return { error: "You do not have administrative access." };
 }
