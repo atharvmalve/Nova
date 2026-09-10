@@ -28,7 +28,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
   }
 
   function addToCart() {
-    addCartLine({ productId: product.id, slug: product.slug, title: product.title, pricePaise: product.pricePaise, quantity });
+    addCartLine({ productId: product.id, quantity }, maximum);
     setIsAdded(true);
   }
 

@@ -75,6 +75,16 @@ export type ProductDetail = StorefrontProduct & {
   images: ProductImage[];
 };
 
+export type CartProduct = {
+  id: string;
+  title: string;
+  slug: string;
+  pricePaise: number;
+  inventoryQuantity: number;
+  trackInventory: boolean;
+  image: ProductImage | null;
+};
+
 const catalogQuerySchema = z.object({
   category: z.string().trim().min(1).max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
   page: z.coerce.number().int().min(1).max(10_000).catch(1),
@@ -181,6 +191,34 @@ export const getProductBySlug = cache(async (slug: string): Promise<ServiceResul
     return { data: null, error: "Unable to load storefront data." };
   }
 });
+
+/** Resolves active products for cart display. Checkout independently revalidates every line. */
+export async function getCartProducts(productIds: string[]): Promise<ServiceResult<CartProduct[]>> {
+  const ids = [...new Set(productIds)].slice(0, 50);
+  if (ids.length === 0) return { data: [], error: null };
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, title, slug, price_paise, inventory_quantity, track_inventory, product_images(id, storage_path, alt_text, sort_order)")
+      .in("id", ids)
+      .eq("status", "active")
+      .order("sort_order", { referencedTable: "product_images", ascending: true });
+    if (error) return { data: [], error: "Unable to load storefront data." };
+    const products = (data ?? []) as unknown as Array<Pick<ProductDetailRow, "id" | "title" | "slug" | "price_paise" | "inventory_quantity" | "track_inventory" | "product_images">>;
+    return {
+      data: await Promise.all(products.map(async (product) => {
+        const image = product.product_images?.[0];
+        return {
+          id: product.id, title: product.title, slug: product.slug, pricePaise: product.price_paise,
+          inventoryQuantity: product.inventory_quantity, trackInventory: product.track_inventory,
+          image: image ? { id: image.id, alt: image.alt_text ?? product.title, url: await getProductImageUrl(image.storage_path) } : null,
+        };
+      })),
+      error: null,
+    };
+  } catch { return { data: [], error: "Unable to load storefront data." }; }
+}
 
 export async function getRelatedProducts(
   productId: string,
