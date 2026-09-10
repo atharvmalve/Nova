@@ -1,0 +1,1 @@
+export default function LoadingOrders() { return <main className="mx-auto max-w-7xl animate-pulse p-5 sm:p-8"><div className="h-4 w-20 rounded bg-muted" /><div className="mt-3 h-9 w-40 rounded bg-muted" /><div className="mt-8 h-12 rounded bg-muted" /><div className="mt-5 h-96 rounded-xl bg-muted" /></main>; }

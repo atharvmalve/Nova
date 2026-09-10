@@ -1,0 +1,1 @@
+export default function LoadingOrderDetail() { return <main className="mx-auto max-w-6xl animate-pulse p-5 sm:p-8"><div className="h-9 w-24 rounded bg-muted" /><div className="mt-6 h-16 rounded bg-muted" /><div className="mt-6 grid gap-5 lg:grid-cols-2"><div className="h-64 rounded-xl bg-muted" /><div className="h-64 rounded-xl bg-muted" /></div></main>; }
