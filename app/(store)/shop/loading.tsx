@@ -1,0 +1,3 @@
+export default function ShopLoading() {
+  return <main className="min-h-screen animate-pulse bg-background"><div className="h-16 border-b" /><div className="mx-auto max-w-7xl px-5 py-12 sm:px-8"><div className="h-10 w-56 rounded bg-muted" /><div className="mt-8 h-11 rounded bg-muted" /><div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">{Array.from({ length: 8 }, (_, index) => <div className="space-y-3" key={index}><div className="aspect-[4/5] rounded-xl bg-muted" /><div className="h-4 w-2/3 rounded bg-muted" /><div className="h-3 w-1/3 rounded bg-muted" /></div>)}</div></div></main>;
+}
