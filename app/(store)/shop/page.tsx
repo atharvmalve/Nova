@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 import { StorefrontFooter, StorefrontNavbar } from "@/components/storefront/storefront-shell";
+import { formatCurrency } from "@/src/lib/currency";
 import {
   getActiveCategories,
   getProductCatalog,
@@ -69,4 +70,4 @@ function Pagination({ currentPage, totalPages, query }: { currentPage: number; t
 function ShopEmpty({ hasFilters }: { hasFilters: boolean }) { return <div className="mt-6 rounded-xl border border-dashed p-10 text-center"><h2 className="text-lg font-semibold">No products found</h2><p className="mt-2 text-sm text-muted-foreground">{hasFilters ? "Try a different search or clear your filters." : "Products will appear here once they are available."}</p>{hasFilters ? <Link className="mt-5 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground" href="/shop">Clear filters</Link> : null}</div>; }
 function ShopError() { return <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-8 text-sm text-destructive">We couldn’t load products right now. Please refresh and try again.</div>; }
 function createShopHref(query: { category?: string; page?: number; q?: string }) { const params = new URLSearchParams(); if (query.category) params.set("category", query.category); if (query.q) params.set("q", query.q); if (query.page && query.page > 1) params.set("page", String(query.page)); const string = params.toString(); return string ? `/shop?${string}` : "/shop"; }
-function formatPrice(paise: number) { return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(paise / 100); }
+function formatPrice(paise: number) { return formatCurrency(paise); }

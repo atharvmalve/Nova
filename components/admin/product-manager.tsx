@@ -6,6 +6,7 @@ import { Edit3, Plus, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createProduct, deactivateProduct, updateProduct, type ProductActionState } from "@/app/(admin)/admin/(protected)/products/actions";
 import type { AdminCategory, AdminProduct, AdminProductPage } from "@/services/admin-products";
+import { formatCurrency } from "@/src/lib/currency";
 
 const initialState: ProductActionState = {};
 type Filters = { q: string; status: string; category: string };
@@ -25,4 +26,4 @@ function ProductForm({ product, categories, onClose }: { product: AdminProduct |
 function Field({ label, error, children }: { label: string; error?: string[]; children: React.ReactNode }) { return <label className="grid gap-2 text-sm font-medium"><span>{label}</span><span className="[&_input]:h-10 [&_input]:w-full [&_input]:rounded-md [&_input]:border [&_input]:bg-background [&_input]:px-3 [&_select]:h-10 [&_select]:w-full [&_select]:rounded-md [&_select]:border [&_select]:bg-background [&_select]:px-3 [&_textarea]:w-full [&_textarea]:rounded-md [&_textarea]:border [&_textarea]:bg-background [&_textarea]:p-3">{children}</span>{error?.[0] ? <span className="text-xs font-normal text-destructive">{error[0]}</span> : null}</label>; }
 function Status({ value }: { value: string }) { return <span className={`rounded-full px-2 py-1 text-xs font-medium ${value === "active" ? "bg-emerald-500/10 text-emerald-700" : value === "archived" ? "bg-muted text-muted-foreground" : "bg-amber-500/10 text-amber-700"}`}>{value === "archived" ? "Inactive" : value[0].toUpperCase() + value.slice(1)}</span>; }
 function Pagination({ page, totalPages, filters }: { page: number; totalPages: number; filters: Filters }) { function href(next: number) { const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value)); params.set("page", String(next)); return `/admin/products?${params}`; } return <div className="mt-5 flex items-center justify-between text-sm"><span className="text-muted-foreground">Page {page} of {totalPages}</span><div className="flex gap-2"><Button disabled={page <= 1} render={<a href={href(page - 1)} />} variant="outline">Previous</Button><Button disabled={page >= totalPages} render={<a href={href(page + 1)} />} variant="outline">Next</Button></div></div>; }
-function money(paise: number) { return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(paise / 100); }
+function money(paise: number) { return formatCurrency(paise, 2); }

@@ -1,6 +1,7 @@
 import { AlertCircle, ArrowUpRight, BadgeIndianRupee, Package, ShoppingCart, Users } from "lucide-react";
 
 import { getAdminDashboard } from "@/services/admin-dashboard";
+import { formatCurrency } from "@/src/lib/currency";
 
 export default async function AdminPage() {
   const result = await getAdminDashboard();
@@ -14,4 +15,4 @@ function RecentOrders({ orders }: { orders: Awaited<ReturnType<typeof getAdminDa
 function Inventory({ inventory, outOfStockCount }: { inventory: Awaited<ReturnType<typeof getAdminDashboard>>["data"]["inventory"]; outOfStockCount: number }) { return <section className="rounded-xl border bg-background"><div className="p-5"><h2 className="font-semibold">Inventory watch</h2><p className="mt-1 text-sm text-muted-foreground">{outOfStockCount > 0 ? `${outOfStockCount} product${outOfStockCount === 1 ? " is" : "s are"} out of stock.` : "No products are out of stock."}</p></div><div className="border-t">{inventory.length === 0 ? <Empty label="Inventory levels look healthy." /> : inventory.map((product) => <div className="flex items-center justify-between gap-4 border-b px-5 py-4 last:border-b-0" key={product.id}><p className="min-w-0 truncate text-sm font-medium">{product.title}</p><span className={`shrink-0 rounded-full px-2 py-1 text-xs font-medium ${product.isOutOfStock ? "bg-destructive/10 text-destructive" : "bg-amber-500/10 text-amber-700"}`}>{product.isOutOfStock ? "Out of stock" : `${product.inventoryQuantity} left`}</span></div>)}</div></section>; }
 function Status({ value }: { value: string }) { return <span className="rounded-full bg-muted px-2 py-1 text-xs capitalize text-muted-foreground">{value.replaceAll("_", " ")}</span>; }
 function Empty({ label }: { label: string }) { return <p className="p-8 text-center text-sm text-muted-foreground">{label}</p>; }
-function formatPrice(paise: number) { return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(paise / 100); }
+function formatPrice(paise: number) { return formatCurrency(paise); }

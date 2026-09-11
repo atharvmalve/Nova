@@ -7,6 +7,8 @@ import { ProductGallery } from "@/components/storefront/product-gallery";
 import { ProductPurchasePanel } from "@/components/storefront/product-purchase-panel";
 import { StorefrontFooter, StorefrontNavbar } from "@/components/storefront/storefront-shell";
 import { getProductBySlug, getRelatedProducts, type ProductDetail, type StorefrontProduct } from "@/services/products";
+import { formatCurrency } from "@/src/lib/currency";
+import { storeConfig } from "@/src/config/store";
 
 type ProductPageProps = { params: Promise<{ slug: string }> };
 
@@ -15,12 +17,12 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const result = await getProductBySlug(slug);
 
   if (!result.data) {
-    return { title: "Product not found | NOVA", robots: { index: false, follow: false } };
+    return { title: `Product not found | ${storeConfig.name}`, robots: { index: false, follow: false } };
   }
 
-  const description = result.data.description?.slice(0, 160) ?? `Shop ${result.data.title} at NOVA.`;
+  const description = result.data.description?.slice(0, 160) ?? `Shop ${result.data.title} at ${storeConfig.name}.`;
   return {
-    title: `${result.data.title} | NOVA`,
+    title: `${result.data.title} | ${storeConfig.name}`,
     description,
     alternates: { canonical: `/products/${result.data.slug}` },
     openGraph: { title: result.data.title, description, type: "website" },
@@ -50,4 +52,4 @@ function ProductInfo({ product }: { product: ProductDetail }) {
 }
 
 function RelatedProducts({ products }: { products: StorefrontProduct[] }) { return <section className="mt-20 border-t pt-12"><p className="text-xs font-semibold uppercase tracking-[.16em] text-muted-foreground">More to discover</p><h2 className="mt-2 text-3xl font-semibold tracking-tight">You may also like</h2><div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">{products.map((product, index) => <Link className="group min-w-0" href={`/products/${product.slug}`} key={product.id}><div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-stone-100"><div className="absolute inset-0 transition-transform duration-500 group-hover:scale-105" style={{ background: `linear-gradient(${145 + index * 13}deg, hsl(${38 + index * 18} 28% ${84 - index * 4}%), hsl(${31 + index * 11} 22% ${61 - index * 3}%))` }} /></div><h3 className="mt-3 truncate text-sm font-semibold">{product.title}</h3><p className="mt-1 text-sm text-muted-foreground">{formatPrice(product.pricePaise)}</p></Link>)}</div></section>; }
-function formatPrice(paise: number) { return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(paise / 100); }
+function formatPrice(paise: number) { return formatCurrency(paise); }

@@ -3,6 +3,8 @@ import { ArrowRight, Check, Sparkles } from "lucide-react";
 
 import { StorefrontFooter, StorefrontNavbar, TextLink } from "@/components/storefront/storefront-shell";
 import { getActiveCategories, getFeaturedProducts, type StorefrontProduct } from "@/services/products";
+import { storeConfig } from "@/src/config/store";
+import { formatCurrency } from "@/src/lib/currency";
 
 export default async function StorefrontHomePage() {
   const [productsResult, categoriesResult] = await Promise.all([
@@ -20,7 +22,7 @@ export default async function StorefrontHomePage() {
             <div>
               <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/60 px-3 py-1 text-xs font-semibold uppercase tracking-[.16em]"><Sparkles className="size-3" /> New season, quiet confidence</p>
               <h1 className="max-w-xl text-5xl font-semibold tracking-[-.055em] text-stone-900 sm:text-6xl lg:text-7xl">Objects for a life well lived.</h1>
-              <p className="mt-6 max-w-lg text-base leading-7 text-stone-600 sm:text-lg">Thoughtfully selected essentials with an effortless point of view. Discover pieces made to be reached for, every day.</p>
+              <p className="mt-6 max-w-lg text-base leading-7 text-stone-600 sm:text-lg">{storeConfig.description}</p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link className="inline-flex h-11 items-center gap-2 rounded-md bg-stone-900 px-5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5" href="/shop">Shop the collection <ArrowRight className="size-4" /></Link>
                 <Link className="inline-flex h-11 items-center rounded-md border border-stone-300 bg-white/50 px-5 text-sm font-semibold text-stone-900 hover:bg-white" href="#featured">Explore new arrivals</Link>
@@ -40,7 +42,7 @@ export default async function StorefrontHomePage() {
 
         <section className="border-y bg-muted/30" id="categories"><div className="mx-auto max-w-7xl px-5 py-20 sm:px-8"><p className="text-xs font-semibold uppercase tracking-[.18em] text-muted-foreground">Browse with intention</p><h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Shop by category</h2>{categoriesResult.error ? <StorefrontError /> : categoriesResult.data.length === 0 ? <StorefrontEmpty label="Categories will appear here once they are available." /> : <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{categoriesResult.data.map((category, index) => <Link className="group relative min-h-48 overflow-hidden rounded-xl bg-stone-900 p-6 text-white" href={`/shop?category=${encodeURIComponent(category.slug)}`} key={category.id}><div className="absolute inset-0 opacity-70 transition-transform duration-500 group-hover:scale-105" style={{ background: `linear-gradient(${125 + index * 19}deg, hsl(${25 + index * 28} 22% ${29 + index * 4}%), hsl(${35 + index * 14} 30% ${64 - index * 3}%))` }} /><div className="relative flex h-full flex-col justify-end"><p className="text-xl font-semibold">{category.name}</p><p className="mt-2 line-clamp-2 text-sm text-white/75">{category.description ?? "Explore the collection"}</p><span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold">Discover <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></span></div></Link>)}</div>}</div></section>
 
-        <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8"><div className="grid overflow-hidden rounded-2xl bg-stone-900 text-white lg:grid-cols-2"><div className="p-8 sm:p-12 lg:p-16"><p className="text-xs font-semibold uppercase tracking-[.18em] text-stone-400">The NOVA standard</p><h2 className="mt-4 max-w-md text-3xl font-semibold tracking-tight sm:text-4xl">A better way to build your everyday.</h2><ul className="mt-8 grid gap-4 text-sm text-stone-300">{["Thoughtful materials and considered details", "Pieces selected to wear, use and keep", "Straightforward delivery and easy returns"].map((benefit) => <li className="flex gap-3" key={benefit}><Check className="size-5 shrink-0 text-stone-100" />{benefit}</li>)}</ul><Link className="mt-10 inline-flex h-11 items-center rounded-md bg-white px-5 text-sm font-semibold text-stone-900 hover:bg-stone-100" href="/shop">Start exploring</Link></div><div className="min-h-64 bg-[radial-gradient(circle_at_30%_20%,#d4b995_0,transparent_34%),radial-gradient(circle_at_70%_70%,#756452_0,transparent_38%),linear-gradient(135deg,#b69b7e,#493d33)]" /></div></section>
+        <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8"><div className="grid overflow-hidden rounded-2xl bg-stone-900 text-white lg:grid-cols-2"><div className="p-8 sm:p-12 lg:p-16"><p className="text-xs font-semibold uppercase tracking-[.18em] text-stone-400">The {storeConfig.name} standard</p><h2 className="mt-4 max-w-md text-3xl font-semibold tracking-tight sm:text-4xl">A better way to build your everyday.</h2><ul className="mt-8 grid gap-4 text-sm text-stone-300">{["Thoughtful materials and considered details", "Pieces selected to wear, use and keep", "Straightforward delivery and easy returns"].map((benefit) => <li className="flex gap-3" key={benefit}><Check className="size-5 shrink-0 text-stone-100" />{benefit}</li>)}</ul><Link className="mt-10 inline-flex h-11 items-center rounded-md bg-white px-5 text-sm font-semibold text-stone-900 hover:bg-stone-100" href="/shop">Start exploring</Link></div><div className="min-h-64 bg-[radial-gradient(circle_at_30%_20%,#d4b995_0,transparent_34%),radial-gradient(circle_at_70%_70%,#756452_0,transparent_38%),linear-gradient(135deg,#b69b7e,#493d33)]" /></div></section>
       </main>
       <StorefrontFooter />
     </div>
@@ -53,4 +55,4 @@ function ProductGrid({ products }: { products: StorefrontProduct[] }) {
 
 function StorefrontEmpty({ label }: { label: string }) { return <div className="mt-9 rounded-xl border border-dashed p-8 text-sm text-muted-foreground">{label}</div>; }
 function StorefrontError() { return <div className="mt-9 rounded-xl border border-destructive/30 bg-destructive/5 p-8 text-sm text-destructive">We couldn’t load this section right now. Please refresh and try again.</div>; }
-function formatPrice(paise: number) { return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(paise / 100); }
+function formatPrice(paise: number) { return formatCurrency(paise); }

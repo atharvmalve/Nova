@@ -5,6 +5,7 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/src/lib/currency";
 import { getCartLines, setCartLines, subscribeToCart, type CartLine } from "@/lib/cart/browser";
 import type { CartProduct } from "@/services/products";
 
@@ -83,4 +84,4 @@ function CartLineItem({ item, onQuantityChange, onRemove }: { item: CartItem; on
 
 function CartLoading() { return <div className="mt-9 space-y-4 animate-pulse"><div className="h-36 rounded-xl bg-muted" /><div className="h-36 rounded-xl bg-muted" /></div>; }
 function EmptyCart() { return <div className="mt-9 rounded-xl border border-dashed px-6 py-14 text-center"><ShoppingBag className="mx-auto size-7 text-muted-foreground" /><h2 className="mt-4 text-lg font-semibold">Your bag is empty</h2><p className="mt-2 text-sm text-muted-foreground">Find something considered for your everyday.</p><Button className="mt-6" render={<Link href="/shop" />}>Explore products</Button></div>; }
-function formatPrice(paise: number) { return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(paise / 100); }
+function formatPrice(paise: number) { return formatCurrency(paise); }

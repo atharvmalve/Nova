@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
+import { storeConfig } from "@/src/config/store";
+import { formatCurrency } from "@/src/lib/currency";
 import { getCartLines, setCartLines, subscribeToCart, type CartLine } from "@/lib/cart/browser";
 import { checkoutFormSchema, type CheckoutFormValues } from "@/lib/checkout/validation";
 import type { CartProduct } from "@/services/products";
@@ -79,7 +81,7 @@ export function CheckoutPage() {
     setIsPaying(true);
     try {
       await loadRazorpayCheckout();
-      const checkout = new window.Razorpay!({ key: paymentOrder.keyId, order_id: paymentOrder.razorpayOrderId, amount: paymentOrder.amountPaise, currency: paymentOrder.currency, name: "NOVA", description: "Order payment", prefill: { name: values.name, email: values.email, contact: values.phone }, theme: { color: "#18181b" }, handler: async (response: RazorpayResponse) => {
+      const checkout = new window.Razorpay!({ key: paymentOrder.keyId, order_id: paymentOrder.razorpayOrderId, amount: paymentOrder.amountPaise, currency: paymentOrder.currency, name: storeConfig.name, description: `${storeConfig.name} order payment`, prefill: { name: values.name, email: values.email, contact: values.phone }, theme: { color: storeConfig.branding.primaryColor }, handler: async (response: RazorpayResponse) => {
         try {
           const verification = await fetch("/api/payments/verify", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(response) });
           const verified = await verification.json() as { orderId?: string; error?: string };
@@ -102,4 +104,4 @@ function OrderSummary({ items, subtotal }: { items: Array<{ product: CartProduct
 function EmptyCheckout() { return <main className="mx-auto w-full max-w-3xl px-5 py-16 text-center sm:px-8"><ShoppingBag className="mx-auto size-8 text-muted-foreground" /><h1 className="mt-4 text-2xl font-semibold">Your cart is empty</h1><p className="mt-2 text-sm text-muted-foreground">Add products before starting checkout.</p><Button className="mt-6" render={<Link href="/shop" />}>Shop products</Button></main>; }
 function LoadingCheckout() { return <div className="mt-9 grid gap-5 animate-pulse"><div className="h-48 rounded-xl bg-muted" /><div className="h-56 rounded-xl bg-muted" /></div>; }
 function CheckoutError({ message }: { message: string }) { return <div className="mt-9 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">{message}<Link className="mt-4 block font-medium underline" href="/cart">Return to cart</Link></div>; }
-function formatPrice(paise: number) { return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(paise / 100); }
+function formatPrice(paise: number) { return formatCurrency(paise); }
