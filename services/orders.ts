@@ -11,3 +11,4 @@ export async function getOrderSuccessSummary(orderId: string): Promise<OrderSucc
   const order = data as unknown as { order_number: string; customer_name: string; total_paise: number; payment_status: string; order_items: Array<{ quantity: number }> };
   return { orderNumber: order.order_number, customerName: order.customer_name, totalPaise: order.total_paise, paymentStatus: order.payment_status, itemCount: order.order_items.reduce((total, item) => total + item.quantity, 0) };
 }
+// comment
