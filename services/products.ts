@@ -14,6 +14,7 @@ export type StorefrontProduct = {
   categoryName: string | null;
   imageAlt: string | null;
   imageUrl: string | null;
+  images: ProductImage[];
 };
 
 export type StorefrontCategory = {
@@ -64,6 +65,7 @@ export type ProductImage = {
   id: string;
   alt: string;
   url: string | null;
+  sortOrder: number;
 };
 
 export type ProductDetail = StorefrontProduct & {
@@ -124,6 +126,7 @@ function mapProduct(product: ProductRow): StorefrontProduct {
     categoryName: product.categories?.name ?? null,
     imageAlt: product.product_images?.[0]?.alt_text ?? null,
     imageUrl: null,
+    images: [],
   };
 }
 
@@ -172,6 +175,7 @@ export const getProductBySlug = cache(async (slug: string): Promise<ServiceResul
         id: image.id,
         alt: image.alt_text ?? product.title,
         url: await getProductImageUrl(image.storage_path),
+        sortOrder: image.sort_order,
       })),
     );
     const isInStock = !product.track_inventory || product.inventory_quantity > 0;
@@ -214,7 +218,7 @@ export async function getCartProducts(productIds: string[]): Promise<ServiceResu
         return {
           id: product.id, title: product.title, slug: product.slug, pricePaise: product.price_paise,
           inventoryQuantity: product.inventory_quantity, trackInventory: product.track_inventory,
-          image: image ? { id: image.id, alt: image.alt_text ?? product.title, url: await getProductImageUrl(image.storage_path) } : null,
+          image: image ? { id: image.id, alt: image.alt_text ?? product.title, url: await getProductImageUrl(image.storage_path), sortOrder: image.sort_order } : null,
         };
       })),
       error: null,
@@ -306,6 +310,7 @@ export async function getProductCatalog(
 
     const { data, error, count } = await query
       .order("created_at", { ascending: false })
+      .order("sort_order", { referencedTable: "product_images", ascending: true })
       .range(from, from + safePerPage - 1);
 
     if (error) {
@@ -318,7 +323,10 @@ export async function getProductCatalog(
     const total = count ?? 0;
     return {
       data: {
-        items: await Promise.all(((data ?? []) as unknown as ProductRow[]).map(async (product) => ({ ...mapProduct(product), imageUrl: product.product_images?.[0]?.storage_path ? await getProductImageUrl(product.product_images[0].storage_path) : null }))),
+        items: await Promise.all(((data ?? []) as unknown as ProductRow[]).map(async (product) => {
+          const images = await Promise.all((product.product_images ?? []).map(async (image, index) => ({ id: `${product.id}-${index}`, alt: image.alt_text ?? product.title, url: image.storage_path ? await getProductImageUrl(image.storage_path) : null, sortOrder: index })));
+          return { ...mapProduct(product), imageUrl: images[0]?.url ?? null, images };
+        })),
         page,
         perPage: safePerPage,
         total,
