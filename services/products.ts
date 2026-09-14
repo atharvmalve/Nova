@@ -13,6 +13,7 @@ export type StorefrontProduct = {
   compareAtPricePaise: number | null;
   categoryName: string | null;
   imageAlt: string | null;
+  imageUrl: string | null;
 };
 
 export type StorefrontCategory = {
@@ -33,7 +34,7 @@ type ProductRow = {
   price_paise: number;
   compare_at_price_paise: number | null;
   categories: { name: string } | null;
-  product_images: { alt_text: string | null }[] | null;
+  product_images: { alt_text: string | null; storage_path?: string }[] | null;
 };
 
 type CategoryRow = {
@@ -122,6 +123,7 @@ function mapProduct(product: ProductRow): StorefrontProduct {
     compareAtPricePaise: product.compare_at_price_paise,
     categoryName: product.categories?.name ?? null,
     imageAlt: product.product_images?.[0]?.alt_text ?? null,
+    imageUrl: null,
   };
 }
 
@@ -286,8 +288,8 @@ export async function getProductCatalog(
   try {
     const supabase = await createServerSupabaseClient();
     const select = input.category
-      ? "id, title, slug, price_paise, compare_at_price_paise, categories!inner(name, slug), product_images(alt_text, sort_order)"
-      : "id, title, slug, price_paise, compare_at_price_paise, categories(name, slug), product_images(alt_text, sort_order)";
+      ? "id, title, slug, price_paise, compare_at_price_paise, categories!inner(name, slug), product_images(alt_text, storage_path, sort_order)"
+      : "id, title, slug, price_paise, compare_at_price_paise, categories(name, slug), product_images(alt_text, storage_path, sort_order)";
 
     let query = supabase
       .from("products")
@@ -316,7 +318,7 @@ export async function getProductCatalog(
     const total = count ?? 0;
     return {
       data: {
-        items: ((data ?? []) as unknown as ProductRow[]).map(mapProduct),
+        items: await Promise.all(((data ?? []) as unknown as ProductRow[]).map(async (product) => ({ ...mapProduct(product), imageUrl: product.product_images?.[0]?.storage_path ? await getProductImageUrl(product.product_images[0].storage_path) : null }))),
         page,
         perPage: safePerPage,
         total,

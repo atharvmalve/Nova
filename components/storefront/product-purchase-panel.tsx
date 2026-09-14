@@ -1,6 +1,5 @@
 "use client";
 
-import { Minus, Plus, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 
 import { addCartLine } from "@/lib/cart/browser";
@@ -33,8 +32,8 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
   }
 
   if (!product.isInStock) {
-    return <div className="mt-6 rounded-md bg-muted px-4 py-3 text-sm font-medium">Currently out of stock</div>;
+    return <div className="mt-8 border-y border-black/15 py-4 text-sm">Currently out of stock</div>;
   }
 
-  return <div className="mt-6 space-y-3"><div className="flex h-11 w-32 items-center justify-between rounded-md border"><button aria-label="Decrease quantity" className="grid size-10 place-items-center disabled:opacity-40" disabled={quantity <= 1} onClick={() => updateQuantity(quantity - 1)} type="button"><Minus className="size-4" /></button><span aria-live="polite" className="text-sm font-medium">{quantity}</span><button aria-label="Increase quantity" className="grid size-10 place-items-center disabled:opacity-40" disabled={quantity >= maximum} onClick={() => updateQuantity(quantity + 1)} type="button"><Plus className="size-4" /></button></div><button className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90" onClick={addToCart} type="button"><ShoppingBag className="size-4" />{isAdded ? "Added to bag" : "Add to bag"}</button>{product.trackInventory && product.inventoryQuantity <= 5 ? <p className="text-xs text-muted-foreground">Only {product.inventoryQuantity} left in stock.</p> : null}</div>;
+  return <div className="mt-8 space-y-5"><div className="flex w-32 items-center justify-between border-y border-black/15 py-3"><button aria-label="Decrease quantity" className="text-lg disabled:opacity-30" disabled={quantity <= 1} onClick={() => updateQuantity(quantity - 1)} type="button">−</button><span aria-live="polite" className="text-sm">{quantity}</span><button aria-label="Increase quantity" className="text-lg disabled:opacity-30" disabled={quantity >= maximum} onClick={() => updateQuantity(quantity + 1)} type="button">+</button></div><button className="border-b border-black pb-2 text-xs uppercase tracking-[.16em] transition-opacity hover:opacity-50" onClick={addToCart} type="button">{isAdded ? "Added to bag" : "Add to bag"}</button>{product.trackInventory && product.inventoryQuantity <= 5 ? <p className="text-xs text-black/50">Only {product.inventoryQuantity} left in stock.</p> : null}</div>;
 }
