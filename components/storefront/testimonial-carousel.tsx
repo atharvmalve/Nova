@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 
 const testimonials = [
-  { quote: "Novae helped us turn the dining room into something guests actually remember. The furniture feels considered without competing with the space.", name: "Sofia Moretti", place: "Maison Verde, Boutique Restaurant" },
-  { quote: "We wanted the rooms to feel intimate, contemporary and distinctly European. The pieces gave the entire property a much stronger sense of identity.", name: "Matteo Rossi", place: "Villa Aurelia, Boutique Motel" },
-  { quote: "The collection works beautifully in hospitality. Everything feels substantial, refined and designed to be experienced rather than simply looked at.", name: "Elena Bianchi", place: "Casa Nera, Restaurant & Stay" },
-  { quote: "We were looking for furniture that could make the property feel more distinctive without becoming theatrical. Novae understood that balance immediately.", name: "Luca Ferri", place: "The Olive House, Boutique Hotel" },
+  { quote: "Novae helped us turn the dining room into something guests actually remember. The furniture feels considered without competing with the space.", name: "Sofia Moretti", place: "Maison Verde" },
+  { quote: "We wanted the rooms to feel intimate, contemporary and distinctly European. The pieces gave the entire property a much stronger sense of identity.", name: "Matteo Rossi", place: "Villa Aurelia" },
+  { quote: "The collection works beautifully in hospitality. Everything feels substantial, refined and designed to be experienced rather than simply looked at.", name: "Elena Bianchi", place: "Casa Nera" },
+  { quote: "We were looking for furniture that could make the property feel more distinctive without becoming theatrical. Novae understood that balance immediately.", name: "Luca Ferri", place: "The Olive House" },
 ];
 
 export function TestimonialCarousel() {
