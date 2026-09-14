@@ -1,5 +1,6 @@
 export type StoreConfig = {
   name: string;
+  siteUrl: string;
   description: string;
   tagline: string;
   branding: { logo: string | null; favicon: string; primaryColor: string; accentColor: string };
@@ -11,9 +12,10 @@ export type StoreConfig = {
 
 /** Public, deployment-specific identity. Secrets and store data stay in environment variables and Supabase. */
 export const storeConfig = {
-  name: "NOVA",
-  description: "Modern premium lifestyle essentials for everyday life.",
-  tagline: "Considered pieces for everyday rituals.",
+  name: "Novae Studio",
+  siteUrl: "https://novaestudio.vercel.app",
+  description: "Discover Novae Studio, a curated collection of Italian furniture including designer sofas, armchairs and refined pieces for contemporary interiors.",
+  tagline: "Italian furniture for refined contemporary interiors.",
   branding: { logo: null, favicon: "/favicon.ico", primaryColor: "#18181b", accentColor: "#f4f1ea" },
   contact: { email: "hello@nova-demo.example", phone: null, address: null },
   commerce: { currency: "INR", currencySymbol: "₹", locale: "en-IN" },

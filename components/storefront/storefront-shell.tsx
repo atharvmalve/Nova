@@ -11,8 +11,8 @@ export function StorefrontNavbar({ variant = "light" }: { variant?: "light" | "o
         </Link>
         <div className="hidden items-center gap-8 text-[11px] uppercase tracking-[.16em] md:flex">
           <Link className="transition-opacity hover:opacity-55" href="/shop">Collection</Link>
-          <Link className="transition-opacity hover:opacity-55" href="/shop?category=sofas">Sofas</Link>
-          <Link className="transition-opacity hover:opacity-55" href="/shop?category=armchairs">Armchairs</Link>
+          <Link className="transition-opacity hover:opacity-55" href="/shop/sofas">Sofas</Link>
+          <Link className="transition-opacity hover:opacity-55" href="/shop/armchairs">Armchairs</Link>
         </div>
         <div className="flex items-center gap-5 text-[11px] uppercase tracking-[.16em]">
           <Link className="transition-opacity hover:opacity-55" href="/cart">Bag</Link>
@@ -33,7 +33,7 @@ export function StorefrontFooter() {
         </div>
         <div>
           <h2 className="font-editorial text-lg">Collection</h2>
-          <div className="mt-4 grid gap-3 text-xs uppercase tracking-[.14em] text-white/55"><Link href="/shop">All furniture</Link><Link href="/shop?category=sofas">Sofas</Link><Link href="/shop?category=armchairs">Armchairs</Link></div>
+          <div className="mt-4 grid gap-3 text-xs uppercase tracking-[.14em] text-white/55"><Link href="/shop">All furniture</Link><Link href="/shop/sofas">Sofas</Link><Link href="/shop/armchairs">Armchairs</Link></div>
         </div>
       </div>
       <div className="mx-auto flex max-w-[1600px] flex-col gap-2 border-t border-white/15 px-5 py-6 text-[10px] uppercase tracking-[.13em] text-white/45 sm:flex-row sm:justify-between sm:px-8 lg:px-12">

@@ -1,8 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { StorefrontFooter, StorefrontNavbar } from "@/components/storefront/storefront-shell";
 import { TestimonialCarousel } from "@/components/storefront/testimonial-carousel";
+
+export const metadata: Metadata = { title: "Novae Studio | Italian Furniture & Luxury Interiors", description: "Novae Studio presents a curated collection of Italian furniture, designer sofas and armchairs created for refined contemporary interiors.", alternates: { canonical: "/" }, openGraph: { url: "/", title: "Novae Studio | Italian Furniture & Luxury Interiors" } };
 
 const armchairsImage = "https://res.cloudinary.com/dpups1csk/image/upload/c_limit,w_1080/f_auto/q_auto:best/v1776527597/visionnaire_website_prd/1_0f391c926b?_a=BAVMn6E70";
 const sofasImage = "https://res.cloudinary.com/dpups1csk/image/upload/c_limit,w_1080/f_auto/q_auto:best/v1781789309/visionnaire_website_prd/Visionnaire_Bold_Sofa_Website2_11452db0dc?_a=BAVMn6E70";
