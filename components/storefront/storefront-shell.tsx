@@ -26,7 +26,7 @@ export function StorefrontNavbar({ variant = "light" }: { variant?: "light" | "o
 export function StorefrontFooter() {
   return (
     <footer className="bg-black text-white">
-      <div className="mx-auto grid max-w-[1600px] gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.7fr_1fr_1fr] lg:px-12 lg:py-24">
+      <div className="mx-auto grid max-w-[1600px] gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.7fr_1fr] lg:px-12 lg:py-24">
         <div>
           <Link className="font-editorial text-3xl tracking-[-.04em]" href="/">NOVAE STUDIO</Link>
           <p className="mt-5 max-w-xs text-sm leading-6 text-white/55">Italian furniture defined by material, proportion and enduring craft.</p>
@@ -34,10 +34,6 @@ export function StorefrontFooter() {
         <div>
           <h2 className="font-editorial text-lg">Collection</h2>
           <div className="mt-4 grid gap-3 text-xs uppercase tracking-[.14em] text-white/55"><Link href="/shop">All furniture</Link><Link href="/shop?category=sofas">Sofas</Link><Link href="/shop?category=armchairs">Armchairs</Link></div>
-        </div>
-        <div>
-          <h2 className="font-editorial text-lg">Studio</h2>
-          <div className="mt-4 grid gap-3 text-xs uppercase tracking-[.14em] text-white/55"><Link href="/contact">Contact</Link><Link href="/shipping">Delivery & returns</Link></div>
         </div>
       </div>
       <div className="mx-auto flex max-w-[1600px] flex-col gap-2 border-t border-white/15 px-5 py-6 text-[10px] uppercase tracking-[.13em] text-white/45 sm:flex-row sm:justify-between sm:px-8 lg:px-12">
